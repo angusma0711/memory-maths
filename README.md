@@ -1,5 +1,7 @@
 # Memory Maths
 
+[Play the game](https://angusma0711.github.io/memory-maths/)
+
 A teacher-led classroom memory and arithmetic game. No login, backend, analytics, microphone or installation required.
 
 ## Play
