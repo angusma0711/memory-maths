@@ -1,6 +1,6 @@
 import {SYMBOLS, makeBoard, makeQuestions, checkAnswer} from './game.js';
 const $ = id => document.getElementById(id);
-let size = 3, operation = 'add', board = [], questions = [], selected = [], phase = 'setup', current = 0, timer, deadline, solved = 0, retries = 0;
+let size = 3, operation = 'add', board = [], questions = [], selected = [], phase = 'setup', current = 0, timer, deadline, memorySeconds = 30, solved = 0, retries = 0;
 function setChoices(attribute, value) {
   document.querySelectorAll(`[${attribute}]`).forEach(button => {
     const active = button.getAttribute(attribute) === String(value);
@@ -17,7 +17,7 @@ function renderBoard() {
     const visible = phase === 'memory' || phase === 'summary' || (phase === 'correct' && position >= 0);
     button.className = `number-card${position >= 0 ? ' selected' : ''}${phase === 'correct' && position >= 0 ? ' correct' : ''}`;
     button.disabled = phase !== 'answer';
-    button.setAttribute('aria-label', `Card ${card.letter}${visible ? `, number ${card.value}` : ', number hidden'}${position >= 0 ? `, selection ${position + 1}` : ''}`);
+    button.setAttribute('aria-label', `卡片 ${card.letter}${visible ? `，數字 ${card.value}` : '，數字已隱藏'}${position >= 0 ? `，第 ${position + 1} 張選擇` : ''}`);
     button.setAttribute('aria-pressed', position >= 0);
     const letter = document.createElement('span'); letter.className = 'card-letter'; letter.textContent = card.letter;
     const number = document.createElement('span'); number.className = `card-number${visible ? '' : ' hidden-number'}`; number.textContent = visible ? card.value : '·';
@@ -41,16 +41,18 @@ function selectCard(index) {
   renderBoard(); renderSelection();
 }
 function startRound() {
+  if (!$('memory-time').reportValidity()) return;
+  memorySeconds = Number($('memory-time').value);
   clearInterval(timer); board = makeBoard(size); questions = makeQuestions(board, operation);
   current = 0; solved = 0; retries = 0; selected = []; phase = 'memory';
   $('setup').hidden = true; $('game').hidden = false; $('memory-panel').hidden = false; $('question-panel').hidden = true; $('summary-panel').hidden = true; $('finish').hidden = false;
-  $('phase-label').textContent = 'MEMORY TIME'; $('phase-title').textContent = 'Make every number count.';
-  $('board-label').textContent = `${size} × ${size} grid`; $('board-hint').textContent = 'Remember each letter and number.';
-  deadline = Date.now() + 30000; tick(); timer = setInterval(tick, 100); renderBoard();
+  $('phase-label').textContent = '記憶階段'; $('phase-title').textContent = '記住數字與位置';
+  $('board-label').textContent = `${size} × ${size} 網格`; $('board-hint').textContent = '記住每張卡的字母和數字。';
+  deadline = Date.now() + memorySeconds * 1000; tick(); timer = setInterval(tick, 100); renderBoard();
 }
 function tick() {
   const remaining = Math.max(0, deadline - Date.now());
-  $('seconds').textContent = Math.ceil(remaining / 1000); $('progress-fill').style.width = `${remaining / 300}%`;
+  $('seconds').textContent = Math.ceil(remaining / 1000); $('progress-fill').style.width = `${remaining / (memorySeconds * 1000) * 100}%`;
   if (remaining === 0) { clearInterval(timer); showQuestion(); }
 }
 // Re-check elapsed wall time when returning from a background tab.
@@ -58,11 +60,11 @@ document.addEventListener('visibilitychange', () => { if (phase === 'memory') ti
 function showQuestion() {
   phase = 'answer'; selected = [];
   $('memory-panel').hidden = true; $('question-panel').hidden = false;
-  $('phase-label').textContent = 'RECALL & SOLVE'; $('phase-title').textContent = 'Two cards. One answer.';
-  $('board-hint').textContent = 'Say the letters. Keep the numbers in mind.';
-  $('question-count').textContent = `QUESTION ${current + 1} / ${questions.length}`;
+  $('phase-label').textContent = '回憶與運算'; $('phase-title').textContent = '找出符合算式的兩張卡';
+  $('board-hint').textContent = '學生口述字母，教師依次選卡。';
+  $('question-count').textContent = `第 ${current + 1} / ${questions.length} 題`;
   $('equation').textContent = `□ ${SYMBOLS[operation]} □ = ${questions[current].target}`;
-  $('order-hint').textContent = ['subtract', 'divide'].includes(operation) ? 'Order matters: first card, then second card.' : 'You can choose the two cards in either order.';
+  $('order-hint').textContent = ['subtract', 'divide'].includes(operation) ? '請注意次序：第一張卡的數字，再運算第二張卡的數字。' : '兩張卡的選取次序不限。';
   $('feedback').textContent = ''; $('feedback').className = 'feedback';
   $('next').hidden = true; document.querySelector('.answer-actions').hidden = false;
   renderBoard(); renderSelection();
@@ -71,12 +73,12 @@ $('check').addEventListener('click', () => {
   if (phase !== 'answer' || selected.length !== 2) return;
   if (checkAnswer(board, selected, questions[current])) {
     phase = 'correct'; solved++;
-    $('feedback').textContent = `Correct! ${board[selected[0]].value} ${SYMBOLS[operation]} ${board[selected[1]].value} = ${questions[current].target}`;
+    $('feedback').textContent = `答對了！${board[selected[0]].value} ${SYMBOLS[operation]} ${board[selected[1]].value} = ${questions[current].target}`;
     $('feedback').className = 'feedback success'; $('next').hidden = false;
-    $('next').textContent = current === questions.length - 1 ? 'Reveal the board →' : 'Next question →';
+    $('next').textContent = current === questions.length - 1 ? '揭示全部數字 →' : '下一題 →';
     document.querySelector('.answer-actions').hidden = true; renderBoard(); renderSelection(); $('next').focus();
   } else {
-    retries++; $('feedback').textContent = 'Not quite. Recall the numbers and try another pair.';
+    retries++; $('feedback').textContent = '未答對，請回想數字，再選一次。';
     $('feedback').className = 'feedback error';
   }
 });
@@ -84,10 +86,10 @@ $('clear').addEventListener('click', () => { selected = []; $('feedback').textCo
 $('next').addEventListener('click', () => { if (phase !== 'correct') return; if (++current < questions.length) showQuestion(); else endRound(); });
 function endRound() {
   clearInterval(timer); phase = 'summary'; selected = [];
-  $('phase-label').textContent = 'THE BIG REVEAL'; $('phase-title').textContent = 'Take another look.';
-  $('board-hint').textContent = 'All numbers revealed.';
+  $('phase-label').textContent = '揭示全部數字'; $('phase-title').textContent = '一起核對牌面';
+  $('board-hint').textContent = '所有數字已顯示。';
   $('memory-panel').hidden = true; $('question-panel').hidden = true; $('summary-panel').hidden = false; $('finish').hidden = true;
-  $('summary-text').textContent = `${solved} of 5 questions solved${retries ? `, with ${retries} ${retries === 1 ? 'retry' : 'retries'}` : ''}. Talk through the pairs, then try a fresh set of cards.`;
+  $('summary-text').textContent = `完成 ${solved} / 5 題${retries ? `，重試 ${retries} 次` : ''}。一起回顧數字配對，或開始新回合。`;
   renderBoard();
 }
 $('finish').addEventListener('click', () => $('end-dialog').showModal());
@@ -97,6 +99,6 @@ $('start').addEventListener('click', startRound); $('again').addEventListener('c
 $('settings').addEventListener('click', () => { phase = 'setup'; $('game').hidden = true; $('setup').hidden = false; });
 $('fullscreen').addEventListener('click', async () => {
   try { if (document.fullscreenElement) await document.exitFullscreen(); else await document.documentElement.requestFullscreen(); }
-  catch { $('fullscreen').textContent = 'Use your browser’s full-screen option'; }
+  catch { $('fullscreen').textContent = '請使用瀏覽器的全螢幕功能'; }
 });
-document.addEventListener('fullscreenchange', () => { $('fullscreen').textContent = document.fullscreenElement ? 'Exit full screen ↙' : 'Full screen ↗'; });
+document.addEventListener('fullscreenchange', () => { $('fullscreen').textContent = document.fullscreenElement ? '離開全螢幕 ↙' : '全螢幕 ↗'; });

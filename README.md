@@ -1,40 +1,43 @@
-# Memory Maths
+# 數字記憶挑戰 Memory Maths
 
-[Play the game](https://angusma0711.github.io/memory-maths/)
+[直接玩遊戲](https://angusma0711.github.io/memory-maths/)
 
-A teacher-led classroom memory and arithmetic game. No login, backend, analytics, microphone or installation required.
+教師主持的數字記憶及四則運算遊戲，使用繁體中文介面。無需登入、安裝、後端或麥克風，不收集學生資料。
 
-## Play
+## 玩法
 
-1. Choose a **3×3, 4×4 or 5×5** grid and **+, −, × or ÷**.
-2. Students have **30 seconds** to memorise the numbers (1–9) and their letter labels.
-3. Numbers disappear; letters and positions stay visible. The screen shows a question such as **□ + □ = 12**.
-4. Students say two letters. The teacher selects those cards and clicks **Check answer**.
-5. Incorrect answers can be retried without revealing numbers. Correct answers reveal only the chosen pair. Click **Next question** to hide it again.
-6. Complete **five questions** on the same board, then reveal all cards. **End & reveal** can finish a round early after confirmation.
+1. 選擇 **3×3、4×4 或 5×5** 網格，以及加、減、乘或除。
+2. 設定 **5–300 秒**的整數記憶時間，預設 30 秒。
+3. 學生記住數字（1–9）與英文字母的位置配對。
+4. 時間到後數字隱藏，字母及位置保留，顯示例如 **□＋□＝12**。
+5. 學生口述兩張卡的字母，教師依次選卡，再按「檢查答案」。
+6. 答錯可重試，數字繼續隱藏；答對只揭示所選兩張卡，下一題再次隱藏。
+7. 每回合使用同一牌面完成 **5 題**，最後顯示全部數字。教師亦可按「結束並揭示」提前結束，操作前會要求確認。
 
-All valid pairs are accepted. Subtraction and division follow selection order; division questions have integer answers and subtraction questions have positive answers. Each question uses two different cards. There is no answer timer. Numbers may repeat across different cards. Grid size primarily changes memory load, not arithmetic difficulty.
+接受所有符合算式的組合。每題必須使用兩張不同的卡。減法與除法按選取次序計算；減法只出正整數答案，除法只出整除題。卡片數字可以重複，作答不限時。「再玩一回合」會沿用目前的記憶時間及其他設定。
 
-## Run locally
+## 本機執行
 
-Serve this directory using any static server, for example:
+在專案資料夾執行：
 
 ```sh
 python3 -m http.server 4173
 ```
 
-Open http://localhost:4173. JavaScript modules require an HTTP server, rather than opening `index.html` directly. Google Fonts is optional; system fonts are used if unavailable.
+開啟 http://localhost:4173。JavaScript modules 需要 HTTP server，不能直接開啟 index.html。
 
-## Tests
+## 驗證
 
-With Node.js 20 or later:
+使用 Node.js 20 或更新版本：
 
 ```sh
 npm test
 ```
 
-Tests cover all grid sizes and operations, solvability, alternative pairs, card uniqueness and operand order. Serve the root directory directly with GitHub Pages; no build step or third-party JavaScript dependencies are needed.
+測試涵蓋所有網格和運算、題目可解性、不同正確組合、兩張不同卡片的限制，以及減法與除法的次序。時間輸入限制、倒數隱藏及中文介面另外透過瀏覽器檢查。
 
-## Classroom use
+網站為純靜態檔案，GitHub Pages 直接從 main 分支根目錄發佈，無需 build 或第三方 JavaScript 套件。
 
-Start with 3×3 and addition. A wrong answer can reflect memory or arithmetic difficulty; this is a practice activity, not a diagnostic assessment. Use the full-screen button for projection where supported.
+## 課堂使用
+
+初次可用 3×3、加法及 30 秒。答錯可能涉及記憶或運算，本遊戲適合作練習，並非診斷 assessment。可使用全螢幕功能投影。

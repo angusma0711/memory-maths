@@ -1,32 +1,31 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-Hant">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#183e36">
-  <meta name="description" content="A teacher-led classroom game: remember the numbers, solve the equation, and say the card letters.">
-  <title>Memory Maths — Remember. Solve. Say.</title>
+  <meta name="description" content="教師主持的數字記憶遊戲：自選記憶時間，記住數字後，找出符合算式的兩張卡並說出英文字母。">
+  <title>數字記憶挑戰</title>
   <link rel="stylesheet" href="style.css"><script type="module" src="app.js"></script>
 </head>
 <body>
-  <header class="topbar"><a class="brand" href="./"><span class="brand-icon" aria-hidden="true">M<span>²</span></span> Memory Maths</a><span class="tag">THE CLASSROOM EDITION</span><button id="fullscreen" class="quiet">Full screen ↗</button></header>
+  <header class="topbar"><a class="brand" href="./"><span class="brand-icon" aria-hidden="true">M<span>²</span></span> 數字記憶挑戰</a><button id="fullscreen" class="quiet">全螢幕 ↗</button></header>
   <main>
     <section id="setup" class="setup">
-      <div class="intro"><p class="eyebrow">A LITTLE MEMORY. A LITTLE MATHS.</p><h1>Remember.<br>Solve.<br><em>Say the letters.</em></h1><p class="lede">Thirty seconds to remember the numbers.<br>Then work together to find the missing pair.</p><div class="steps"><span><b>01</b> Remember the cards</span><span><b>02</b> Solve the equation</span><span><b>03</b> Say two letters</span></div></div>
-      <div class="setup-card"><div class="card-heading"><span class="eyebrow">GET YOUR CLASS READY</span><span class="small-pill">5 questions</span></div><h2>Set up a round</h2>
-        <fieldset><legend>Choose your grid</legend><div class="choices grid-choices"><button data-size="3" aria-pressed="true" class="choice active"><span class="grid-icon">▦</span><strong>3 × 3</strong><small>9 cards</small></button><button data-size="4" aria-pressed="false" class="choice"><span class="grid-icon">▦</span><strong>4 × 4</strong><small>16 cards</small></button><button data-size="5" aria-pressed="false" class="choice"><span class="grid-icon">▦</span><strong>5 × 5</strong><small>25 cards</small></button></div></fieldset>
-        <fieldset><legend>Choose an operation</legend><div class="choices operations"><button data-operation="add" aria-pressed="true" class="choice active"><strong>+</strong><small>Add</small></button><button data-operation="subtract" aria-pressed="false" class="choice"><strong>−</strong><small>Subtract</small></button><button data-operation="multiply" aria-pressed="false" class="choice"><strong>×</strong><small>Multiply</small></button><button data-operation="divide" aria-pressed="false" class="choice"><strong>÷</strong><small>Divide</small></button></div></fieldset>
-        <div class="memory-note"><span class="clock">◷</span><div><strong>30-second memory time</strong><small>Numbers 1–9 · Letters stay visible · No answer timer</small></div></div><button id="start" class="primary">Start memory round <span>→</span></button><p class="teacher-note">Teacher-led: students say the letters; you select and check.</p>
+      <div class="setup-card"><div class="card-heading"><h1>遊戲設定</h1><span class="small-pill">每回合 5 題</span></div><p class="setup-description">記住數字，解開算式，說出兩張卡的英文字母。</p>
+        <fieldset><legend>卡片數量</legend><div class="choices grid-choices"><button data-size="3" aria-pressed="true" class="choice active"><span class="grid-icon">▦</span><strong>3 × 3</strong><small>9 張卡</small></button><button data-size="4" aria-pressed="false" class="choice"><span class="grid-icon">▦</span><strong>4 × 4</strong><small>16 張卡</small></button><button data-size="5" aria-pressed="false" class="choice"><span class="grid-icon">▦</span><strong>5 × 5</strong><small>25 張卡</small></button></div></fieldset>
+        <fieldset><legend>運算種類</legend><div class="choices operations"><button data-operation="add" aria-pressed="true" class="choice active"><strong>+</strong><small>加法</small></button><button data-operation="subtract" aria-pressed="false" class="choice"><strong>−</strong><small>減法</small></button><button data-operation="multiply" aria-pressed="false" class="choice"><strong>×</strong><small>乘法</small></button><button data-operation="divide" aria-pressed="false" class="choice"><strong>÷</strong><small>除法</small></button></div></fieldset>
+        <div class="time-setting"><label for="memory-time">記憶時間</label><div class="time-input"><input id="memory-time" type="number" min="5" max="300" step="1" value="30" required inputmode="numeric" aria-describedby="time-help"><span>秒</span></div><p id="time-help">可設定 5–300 秒；作答不限時。</p></div><button id="start" class="primary">開始遊戲 <span>→</span></button><p class="teacher-note">學生口述字母，教師選卡並檢查答案。</p>
       </div>
     </section>
     <section id="game" hidden>
-      <div class="game-heading"><div><p id="phase-label" class="eyebrow">MEMORY TIME</p><h1 id="phase-title">Make every number count.</h1></div><button id="finish" class="quiet">End & reveal</button></div>
-      <div class="play-layout"><div class="board-wrap"><div class="board-top"><span id="board-label">3 × 3 grid</span><span id="board-hint">Remember each letter and number.</span></div><div id="board" class="board" aria-label="Number cards"></div></div>
-        <aside class="play-panel"><div id="memory-panel"><span class="small-pill">LOOK & REMEMBER</span><div class="timer"><span id="seconds" role="timer" aria-label="Seconds remaining">30</span><small>seconds left</small></div><div class="progress"><div id="progress-fill"></div></div><h2>Find a place for <br>every number.</h2><p>The numbers will disappear.<br>The letters will stay right here.</p></div>
-          <div id="question-panel" hidden><div class="question-top"><span id="question-count" class="small-pill">QUESTION 1 / 5</span><span class="untimed">Take your time</span></div><p class="prompt">Which two cards make this true?</p><div id="equation" class="equation"></div><p id="order-hint" class="order-hint"></p><div class="selection-label">STUDENTS SAY · TEACHER SELECTS</div><div id="selection" class="selection" aria-label="Selected letters"></div><div id="feedback" class="feedback" role="status" aria-live="polite"></div><div class="answer-actions"><button id="clear" class="secondary">Clear</button><button id="check" class="primary" disabled>Check answer</button></div><button id="next" class="primary" hidden>Next question →</button></div>
-          <div id="summary-panel" hidden><span class="small-pill">ROUND COMPLETE</span><h2>Every card <br>has a story.</h2><p id="summary-text"></p><button id="again" class="primary">New round →</button><button id="settings" class="secondary wide">Change settings</button></div>
+      <div class="game-heading"><div><p id="phase-label" class="eyebrow">記憶階段</p><h1 id="phase-title">記住數字與位置</h1></div><button id="finish" class="quiet">結束並揭示</button></div>
+      <div class="play-layout"><div class="board-wrap"><div class="board-top"><span id="board-label">3 × 3 網格</span><span id="board-hint">記住每張卡的字母和數字。</span></div><div id="board" class="board" aria-label="數字卡片"></div></div>
+        <aside class="play-panel"><div id="memory-panel"><span class="small-pill">觀察並記憶</span><div class="timer"><span id="seconds" role="timer" aria-label="剩餘秒數">30</span><small>秒後隱藏數字</small></div><div class="progress"><div id="progress-fill"></div></div><h2>記住數字與位置</h2><p>時間到後，數字會隱藏，<br>英文字母及卡片位置保持不變。</p></div>
+          <div id="question-panel" hidden><div class="question-top"><span id="question-count" class="small-pill">第 1 / 5 題</span><span class="untimed">作答不限時</span></div><p class="prompt">哪兩張卡能組成這條算式？</p><div id="equation" class="equation"></div><p id="order-hint" class="order-hint"></p><div class="selection-label">學生說字母 · 教師選卡</div><div id="selection" class="selection" aria-label="已選字母"></div><div id="feedback" class="feedback" role="status" aria-live="polite"></div><div class="answer-actions"><button id="clear" class="secondary">清除</button><button id="check" class="primary" disabled>檢查答案</button></div><button id="next" class="primary" hidden>下一題 →</button></div>
+          <div id="summary-panel" hidden><span class="small-pill">回合完成</span><h2>本回合結束</h2><p id="summary-text"></p><button id="again" class="primary">再玩一回合 →</button><button id="settings" class="secondary wide">更改設定</button></div>
         </aside></div>
     </section>
   </main>
-  <footer><span>REMEMBER THE NUMBERS. SAY THE LETTERS.</span><span>Made for thinking together.</span></footer>
-  <dialog id="end-dialog"><h2>End this round?</h2><p>This will reveal all numbers and finish the current round.</p><div class="dialog-actions"><button id="cancel-end" class="secondary">Keep playing</button><button id="confirm-end" class="primary">End & reveal</button></div></dialog>
+  <footer><span>數字範圍 1–9 · 每題選兩張不同的卡</span></footer>
+  <dialog id="end-dialog"><h2>結束本回合？</h2><p>所有數字將會顯示，本回合隨即結束。</p><div class="dialog-actions"><button id="cancel-end" class="secondary">繼續遊戲</button><button id="confirm-end" class="primary">結束並揭示</button></div></dialog>
 </body></html>
