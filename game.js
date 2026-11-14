@@ -3,15 +3,17 @@ export function calculate(a, b, operation) {
   if (operation === 'add') return a + b;
   if (operation === 'subtract') return a - b;
   if (operation === 'multiply') return a * b;
-  if (operation === 'divide') return a / b;
+  if (operation === 'divide') return b === 0 ? NaN : a / b;
   throw new Error('Unknown operation');
 }
 export function makeBoard(size, min = 1, max = 9, random = Math.random) {
   if (![3, 4, 5].includes(size)) throw new Error('Invalid grid size');
-  if (!Number.isInteger(min) || !Number.isInteger(max) || min < 1 || max > 99 || min >= max) throw new Error('Use an increasing integer range within 1–99');
+  if (!Number.isInteger(min) || !Number.isInteger(max) || min < 0 || max > 99 || min >= max) throw new Error('Use an increasing integer range within 0–99');
   // Seed a positive difference and an integer division pair, even for narrow ranges.
   const numbers = [min, max];
-  if (min * 2 <= max) {
+  if (min === 0) {
+    numbers.push(1); // Keep a nonzero divisor, including two 1 cards for the 0–1 range.
+  } else if (min * 2 <= max) {
     if (min * 2 !== max) numbers.push(min * 2);
   } else numbers.push(min); // Two different cards with the same value can divide to 1.
   const candidates = Array.from({length: max - min + 1}, (_, i) => min + i).filter(value => !numbers.includes(value));
@@ -41,9 +43,9 @@ export function makeQuestions(board, operation, count = 5, random = Math.random)
   const pools = new Map(operations.map(op => {
     const results = new Set();
     for (let a = 0; a < board.length; a++) for (let b = 0; b < board.length; b++) {
-      if (a === b) continue;
+      if (a === b || (op === 'divide' && board[b].value === 0)) continue;
       const result = calculate(board[a].value, board[b].value, op);
-      if (Number.isInteger(result) && result > 0) results.add(result);
+      if (Number.isInteger(result) && (op === 'subtract' ? result > 0 : result >= 0)) results.add(result);
     }
     if (!results.size) throw new Error('No valid questions');
     return [op, shuffle([...results])];
@@ -62,5 +64,5 @@ export function makeQuestions(board, operation, count = 5, random = Math.random)
 export function checkAnswer(board, selected, question) {
   if (selected.length !== 2 || selected[0] === selected[1]) return false;
   const [a, b] = selected.map(index => board[index]?.value);
-  return Number.isFinite(a) && Number.isFinite(b) && calculate(a, b, question.operation) === question.target;
+  return Number.isFinite(a) && Number.isFinite(b) && !(question.operation === 'divide' && b === 0) && calculate(a, b, question.operation) === question.target;
 }

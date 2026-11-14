@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {makeBoard, makeQuestions, checkAnswer} from '../game.js';
+import {makeBoard, makeQuestions, checkAnswer, calculate} from '../game.js';
 test('every grid has stable unique letters, bounded numbers and solvable questions', () => {
   for (const size of [3,4,5]) for (let run=0; run<80; run++) {
     const board = makeBoard(size);
@@ -86,5 +86,30 @@ test('custom ranges stay bounded and support every operation, including narrow h
   }
 });
 test('invalid number ranges are rejected', () => {
-  for (const [min,max] of [[0,9],[1,100],[9,1],[5,5],[1.5,9],[1,9.5],[NaN,9]]) assert.throws(() => makeBoard(3,min,max));
+  for (const [min,max] of [[-1,9],[1,100],[9,1],[5,5],[1.5,9],[1,9.5],[NaN,9]]) assert.throws(() => makeBoard(3,min,max));
+});
+test('zero-inclusive ranges remain solvable even with extreme random sequences', () => {
+  for (const size of [3,4,5]) for (const max of [1,2,9,99]) for (const random of [Math.random, () => 0, () => 0.999]) {
+    const board = makeBoard(size,0,max,random);
+    assert.equal(board.length,size*size);
+    assert.ok(board.some(c => c.value === 0));
+    assert.ok(board.every(c => Number.isInteger(c.value) && c.value >= 0 && c.value <= max));
+    for (const q of makeQuestions(board,'mixed',30)) {
+      assert.ok(Number.isFinite(q.target) && Number.isInteger(q.target));
+      assert.ok(q.operation === 'subtract' ? q.target > 0 : q.target >= 0);
+      assert.ok(board.some((_,a) => board.some((_,b) => checkAnswer(board,[a,b],q))));
+    }
+  }
+});
+test('zero can participate in equations but can never be a divisor', () => {
+  const board = [0,0,1,2].map(value => ({value}));
+  assert.ok(Number.isNaN(calculate(1,0,'divide')));
+  assert.ok(Number.isNaN(calculate(0,0,'divide')));
+  assert.ok(checkAnswer(board,[0,2],{operation:'divide',target:0}));
+  assert.equal(checkAnswer(board,[2,0],{operation:'divide',target:Infinity}),false);
+  assert.equal(checkAnswer(board,[0,1],{operation:'divide',target:0}),false);
+  for (const operation of ['add','multiply','divide']) {
+    const questions = makeQuestions(board,operation,10);
+    assert.ok(questions.some(q => q.target === 0));
+  }
 });
