@@ -32,3 +32,24 @@ test('subtraction and division respect order; repeated cards are rejected',()=>{
   assert.equal(checkAnswer(board,[0,0],{operation:'add',target:16}),false);
   assert.equal(checkAnswer(board,[0],{operation:'add',target:8}),false);
 });
+test('configured counts produce solvable single-operation and balanced mixed rounds', () => {
+  for (const size of [3,4,5]) {
+    const board = makeBoard(size);
+    for (const count of [1,3,4,7,30]) for (const operation of ['add','subtract','multiply','divide','mixed']) {
+      const questions = makeQuestions(board, operation, count);
+      assert.equal(questions.length, count);
+      for (const question of questions) {
+        assert.ok(board.some((_,a) => board.some((_,b) => checkAnswer(board,[a,b],question))));
+        if (operation !== 'mixed') assert.equal(question.operation, operation);
+      }
+      if (operation === 'mixed') {
+        const totals = ['add','subtract','multiply','divide'].map(op => questions.filter(q => q.operation === op).length);
+        assert.ok(Math.max(...totals) - Math.min(...totals) <= 1);
+        if (count >= 4) assert.ok(totals.every(total => total > 0));
+      }
+    }
+  }
+});
+test('invalid question counts are rejected', () => {
+  for (const count of [0,31,1.5,NaN]) assert.throws(() => makeQuestions(makeBoard(3),'mixed',count));
+});

@@ -41,9 +41,9 @@ function selectCard(index) {
   renderBoard(); renderSelection();
 }
 function startRound() {
-  if (!$('memory-time').reportValidity()) return;
+  if (!$('memory-time').reportValidity() || !$('round-questions').reportValidity()) return;
   memorySeconds = Number($('memory-time').value);
-  clearInterval(timer); board = makeBoard(size); questions = makeQuestions(board, operation);
+  clearInterval(timer); board = makeBoard(size); questions = makeQuestions(board, operation, Number($('round-questions').value));
   current = 0; solved = 0; retries = 0; selected = []; phase = 'memory';
   $('setup').hidden = true; $('game').hidden = false; $('memory-panel').hidden = false; $('question-panel').hidden = true; $('summary-panel').hidden = true; $('finish').hidden = false;
   $('phase-label').textContent = '記憶階段'; $('phase-title').textContent = '記住數字與位置';
@@ -63,8 +63,8 @@ function showQuestion() {
   $('phase-label').textContent = '回憶與運算'; $('phase-title').textContent = '找出符合算式的兩張卡';
   $('board-hint').textContent = '學生口述字母，教師依次選卡。';
   $('question-count').textContent = `第 ${current + 1} / ${questions.length} 題`;
-  $('equation').textContent = `□ ${SYMBOLS[operation]} □ = ${questions[current].target}`;
-  $('order-hint').textContent = ['subtract', 'divide'].includes(operation) ? '請注意次序：第一張卡的數字，再運算第二張卡的數字。' : '兩張卡的選取次序不限。';
+  $('equation').textContent = `□ ${SYMBOLS[questions[current].operation]} □ = ${questions[current].target}`;
+  $('order-hint').textContent = ['subtract', 'divide'].includes(questions[current].operation) ? '請注意次序：第一張卡的數字，再運算第二張卡的數字。' : '兩張卡的選取次序不限。';
   $('feedback').textContent = ''; $('feedback').className = 'feedback';
   $('next').hidden = true; document.querySelector('.answer-actions').hidden = false;
   renderBoard(); renderSelection();
@@ -73,7 +73,7 @@ $('check').addEventListener('click', () => {
   if (phase !== 'answer' || selected.length !== 2) return;
   if (checkAnswer(board, selected, questions[current])) {
     phase = 'correct'; solved++;
-    $('feedback').textContent = `答對了！${board[selected[0]].value} ${SYMBOLS[operation]} ${board[selected[1]].value} = ${questions[current].target}`;
+    $('feedback').textContent = `答對了！${board[selected[0]].value} ${SYMBOLS[questions[current].operation]} ${board[selected[1]].value} = ${questions[current].target}`;
     $('feedback').className = 'feedback success'; $('next').hidden = false;
     $('next').textContent = current === questions.length - 1 ? '揭示全部數字 →' : '下一題 →';
     document.querySelector('.answer-actions').hidden = true; renderBoard(); renderSelection(); $('next').focus();
@@ -89,7 +89,7 @@ function endRound() {
   $('phase-label').textContent = '揭示全部數字'; $('phase-title').textContent = '一起核對牌面';
   $('board-hint').textContent = '所有數字已顯示。';
   $('memory-panel').hidden = true; $('question-panel').hidden = true; $('summary-panel').hidden = false; $('finish').hidden = true;
-  $('summary-text').textContent = `完成 ${solved} / 5 題${retries ? `，重試 ${retries} 次` : ''}。一起回顧數字配對，或開始新回合。`;
+  $('summary-text').textContent = `完成 ${solved} / ${questions.length} 題${retries ? `，重試 ${retries} 次` : ''}。一起回顧數字配對，或開始新回合。`;
   renderBoard();
 }
 $('finish').addEventListener('click', () => $('end-dialog').showModal());
