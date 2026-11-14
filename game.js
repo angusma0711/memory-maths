@@ -18,7 +18,8 @@ export function makeBoard(size, random = Math.random) {
 }
 export function makeQuestions(board, operation, count = 5, random = Math.random) {
   if (!Number.isInteger(count) || count < 1 || count > 30) throw new Error('Question count must be 1–30');
-  const operations = operation === 'mixed' ? Object.keys(SYMBOLS) : [operation];
+  const operations = [...new Set(Array.isArray(operation) ? operation : operation === 'mixed' ? Object.keys(SYMBOLS) : [operation])];
+  if (!operations.length || operations.some(op => !Object.hasOwn(SYMBOLS, op))) throw new Error('Select at least one valid operation');
   const shuffle = values => {
     for (let i = values.length - 1; i > 0; i--) {
       const j = Math.floor(random() * (i + 1));
@@ -36,7 +37,7 @@ export function makeQuestions(board, operation, count = 5, random = Math.random)
     if (!results.size) throw new Error('No valid questions');
     return [op, shuffle([...results])];
   }));
-  // Cycle through all four operations; exhaust each answer pool before repeating it.
+  // Cycle through selected operations; exhaust each answer pool before repeating it.
   const order = shuffle([...operations]);
   const used = new Map(operations.map(op => [op, 0]));
   return Array.from({length: count}, (_, i) => {

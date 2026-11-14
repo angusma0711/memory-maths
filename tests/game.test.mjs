@@ -53,3 +53,21 @@ test('configured counts produce solvable single-operation and balanced mixed rou
 test('invalid question counts are rejected', () => {
   for (const count of [0,31,1.5,NaN]) assert.throws(() => makeQuestions(makeBoard(3),'mixed',count));
 });
+test('any subset of one to four operations is balanced and excludes unselected kinds', () => {
+  const all = ['add','subtract','multiply','divide'];
+  for (let mask = 1; mask < 16; mask++) {
+    const selected = all.filter((_, i) => mask & (1 << i));
+    for (const count of [1,5,12,30]) {
+      const board = makeBoard(3);
+      const questions = makeQuestions(board, selected, count);
+      assert.equal(questions.length, count);
+      assert.ok(questions.every(q => selected.includes(q.operation)));
+      const totals = selected.map(op => questions.filter(q => q.operation === op).length);
+      assert.ok(Math.max(...totals) - Math.min(...totals) <= 1);
+      if (count >= selected.length) assert.ok(totals.every(n => n > 0));
+      for (const q of questions) assert.ok(board.some((_,a) => board.some((_,b) => checkAnswer(board,[a,b],q))));
+    }
+  }
+  assert.throws(() => makeQuestions(makeBoard(3), []));
+  assert.throws(() => makeQuestions(makeBoard(3), ['invalid']));
+});

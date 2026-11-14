@@ -1,6 +1,6 @@
 import {SYMBOLS, makeBoard, makeQuestions, checkAnswer} from './game.js';
 const $ = id => document.getElementById(id);
-let size = 3, operation = 'add', board = [], questions = [], selected = [], phase = 'setup', current = 0, timer, deadline, memorySeconds = 30, solved = 0, retries = 0;
+let size = 3, operations = ['add'], board = [], questions = [], selected = [], phase = 'setup', current = 0, timer, deadline, memorySeconds = 30, solved = 0, retries = 0;
 function setChoices(attribute, value) {
   document.querySelectorAll(`[${attribute}]`).forEach(button => {
     const active = button.getAttribute(attribute) === String(value);
@@ -8,7 +8,22 @@ function setChoices(attribute, value) {
   });
 }
 document.querySelectorAll('[data-size]').forEach(button => button.addEventListener('click', () => { size = Number(button.dataset.size); setChoices('data-size', size); }));
-document.querySelectorAll('[data-operation]').forEach(button => button.addEventListener('click', () => { operation = button.dataset.operation; setChoices('data-operation', operation); }));
+document.querySelectorAll('[data-operation]').forEach(button => button.addEventListener('click', () => {
+  const operation = button.dataset.operation;
+  if (operations.includes(operation)) {
+    if (operations.length === 1) {
+      $('operation-help').textContent = '至少需要選擇一種運算。';
+      return;
+    }
+    operations = operations.filter(value => value !== operation);
+  } else operations.push(operation);
+  document.querySelectorAll('[data-operation]').forEach(choice => {
+    const active = operations.includes(choice.dataset.operation);
+    choice.classList.toggle('active', active);
+    choice.setAttribute('aria-pressed', active);
+  });
+  $('operation-help').textContent = `已選 ${operations.length} 種運算；再次點選可取消，至少保留一種。`;
+}));
 function renderBoard() {
   $('board').style.setProperty('--size', size);
   $('board').replaceChildren(...board.map((card, index) => {
@@ -43,7 +58,7 @@ function selectCard(index) {
 function startRound() {
   if (!$('memory-time').reportValidity() || !$('round-questions').reportValidity()) return;
   memorySeconds = Number($('memory-time').value);
-  clearInterval(timer); board = makeBoard(size); questions = makeQuestions(board, operation, Number($('round-questions').value));
+  clearInterval(timer); board = makeBoard(size); questions = makeQuestions(board, operations, Number($('round-questions').value));
   current = 0; solved = 0; retries = 0; selected = []; phase = 'memory';
   $('setup').hidden = true; $('game').hidden = false; $('memory-panel').hidden = false; $('question-panel').hidden = true; $('summary-panel').hidden = true; $('finish').hidden = false;
   $('phase-label').textContent = '記憶階段'; $('phase-title').textContent = '記住數字與位置';
