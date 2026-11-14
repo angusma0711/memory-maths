@@ -1,4 +1,4 @@
-import {SYMBOLS, makeBoard, makeQuestions, checkAnswer} from './game.js';
+import {SYMBOLS, makeBoard, shuffleBoard, makeQuestions, checkAnswer} from './game.js';
 const $ = id => document.getElementById(id);
 let size = 3, operations = ['add'], board = [], questions = [], selected = [], phase = 'setup', current = 0, timer, deadline, memorySeconds = 30, solved = 0, retries = 0;
 function setChoices(attribute, value) {
@@ -68,10 +68,21 @@ function startRound() {
   $('round-info').textContent = `數字範圍 ${min}–${max} · 每題選兩張不同的卡`;
   memorySeconds = Number($('memory-time').value);
   clearInterval(timer); board = makeBoard(size, min, max); questions = makeQuestions(board, operations, Number($('round-questions').value));
-  current = 0; solved = 0; retries = 0; selected = []; phase = 'memory';
-  $('setup').hidden = true; $('game').hidden = false; $('memory-panel').hidden = false; $('question-panel').hidden = true; $('summary-panel').hidden = true; $('finish').hidden = false;
-  $('phase-label').textContent = '記憶階段'; $('phase-title').textContent = '記住數字與位置';
-  $('board-label').textContent = `${size} × ${size} 網格`; $('board-hint').textContent = '記住每張卡的字母和數字。';
+  current = 0; solved = 0; retries = 0;
+  $('setup').hidden = true; $('game').hidden = false;
+  $('board-label').textContent = `${size} × ${size} 網格`;
+  startMemory();
+}
+function startMemory(reshuffle = false) {
+  clearInterval(timer);
+  if (reshuffle) board = shuffleBoard(board);
+  selected = []; phase = 'memory';
+  $('memory-panel').hidden = false; $('question-panel').hidden = true; $('summary-panel').hidden = true; $('finish').hidden = false;
+  $('phase-label').textContent = `第 ${current + 1} / ${questions.length} 題 · 記憶階段`;
+  $('phase-title').textContent = reshuffle ? '重新記住數字與位置' : '記住數字與位置';
+  $('board-hint').textContent = reshuffle ? '卡片已重新洗牌，請重新記憶。' : '記住每張卡的字母和數字。';
+  $('equation').textContent = ''; $('feedback').textContent = ''; $('feedback').className = 'feedback'; $('next').hidden = true;
+  renderSelection();
   deadline = Date.now() + memorySeconds * 1000; tick(); timer = setInterval(tick, 100); renderBoard();
 }
 function tick() {
@@ -99,7 +110,7 @@ $('check').addEventListener('click', () => {
     phase = 'correct'; solved++;
     $('feedback').textContent = `答對了！${board[selected[0]].value} ${SYMBOLS[questions[current].operation]} ${board[selected[1]].value} = ${questions[current].target}`;
     $('feedback').className = 'feedback success'; $('next').hidden = false;
-    $('next').textContent = current === questions.length - 1 ? '揭示全部數字 →' : '下一題 →';
+    $('next').textContent = current === questions.length - 1 ? '揭示全部數字 →' : '洗牌並記憶下一題 →';
     document.querySelector('.answer-actions').hidden = true; renderBoard(); renderSelection(); $('next').focus();
   } else {
     retries++; $('feedback').textContent = '未答對，請回想數字，再選一次。';
@@ -107,7 +118,7 @@ $('check').addEventListener('click', () => {
   }
 });
 $('clear').addEventListener('click', () => { selected = []; $('feedback').textContent = ''; renderBoard(); renderSelection(); });
-$('next').addEventListener('click', () => { if (phase !== 'correct') return; if (++current < questions.length) showQuestion(); else endRound(); });
+$('next').addEventListener('click', () => { if (phase !== 'correct') return; if (++current < questions.length) startMemory(true); else endRound(); });
 function endRound() {
   clearInterval(timer); phase = 'summary'; selected = [];
   $('phase-label').textContent = '揭示全部數字'; $('phase-title').textContent = '一起核對牌面';

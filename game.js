@@ -29,6 +29,19 @@ export function makeBoard(size, min = 1, max = 9, random = Math.random) {
   }
   return numbers.map((value, i) => ({letter: String.fromCharCode(65 + i), value}));
 }
+export function shuffleBoard(board, random = Math.random) {
+  const values = board.map(card => card.value);
+  for (let i = values.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1));
+    [values[i], values[j]] = [values[j], values[i]];
+  }
+  // Guarantee a visibly changed arrangement when at least two values differ.
+  if (values.every((value, index) => value === board[index].value)) {
+    const different = values.findIndex(value => value !== values[0]);
+    if (different > 0) [values[0], values[different]] = [values[different], values[0]];
+  }
+  return board.map((card, index) => ({...card, value: values[index]}));
+}
 export function makeQuestions(board, operation, count = 5, random = Math.random) {
   if (!Number.isInteger(count) || count < 1 || count > 30) throw new Error('Question count must be 1–30');
   const operations = [...new Set(Array.isArray(operation) ? operation : operation === 'mixed' ? Object.keys(SYMBOLS) : [operation])];

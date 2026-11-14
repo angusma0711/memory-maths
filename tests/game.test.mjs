@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {makeBoard, makeQuestions, checkAnswer, calculate} from '../game.js';
+import {makeBoard, makeQuestions, checkAnswer, calculate, shuffleBoard} from '../game.js';
 test('every grid has stable unique letters, bounded numbers and solvable questions', () => {
   for (const size of [3,4,5]) for (let run=0; run<80; run++) {
     const board = makeBoard(size);
@@ -111,5 +111,20 @@ test('zero can participate in equations but can never be a divisor', () => {
   for (const operation of ['add','multiply','divide']) {
     const questions = makeQuestions(board,operation,10);
     assert.ok(questions.some(q => q.target === 0));
+  }
+});
+test('between-question shuffles preserve values, fixed labels and solvability while changing positions', () => {
+  for (const size of [3,4,5]) for (const [min,max] of [[0,1],[0,9],[50,99]]) {
+    const board = makeBoard(size,min,max);
+    const original = structuredClone(board);
+    const questions = makeQuestions(board,'mixed',12);
+    for (const random of [Math.random, () => 0.999]) {
+      const shuffled = shuffleBoard(board,random);
+      assert.deepEqual(board,original);
+      assert.deepEqual(shuffled.map(c=>c.letter),board.map(c=>c.letter));
+      assert.deepEqual(shuffled.map(c=>c.value).sort((a,b)=>a-b),board.map(c=>c.value).sort((a,b)=>a-b));
+      assert.ok(shuffled.some((card,i)=>card.value !== board[i].value));
+      for (const question of questions) assert.ok(shuffled.some((_,a)=>shuffled.some((_,b)=>checkAnswer(shuffled,[a,b],question))));
+    }
   }
 });
