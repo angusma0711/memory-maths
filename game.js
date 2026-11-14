@@ -6,10 +6,21 @@ export function calculate(a, b, operation) {
   if (operation === 'divide') return a / b;
   throw new Error('Unknown operation');
 }
-export function makeBoard(size, random = Math.random) {
+export function makeBoard(size, min = 1, max = 9, random = Math.random) {
   if (![3, 4, 5].includes(size)) throw new Error('Invalid grid size');
-  // Guarantee a useful spread and an integer division pair in every board.
-  const numbers = Array.from({length: size * size}, (_, i) => i < 9 ? i + 1 : 1 + Math.floor(random() * 9));
+  if (!Number.isInteger(min) || !Number.isInteger(max) || min < 1 || max > 99 || min >= max) throw new Error('Use an increasing integer range within 1–99');
+  // Seed a positive difference and an integer division pair, even for narrow ranges.
+  const numbers = [min, max];
+  if (min * 2 <= max) {
+    if (min * 2 !== max) numbers.push(min * 2);
+  } else numbers.push(min); // Two different cards with the same value can divide to 1.
+  const candidates = Array.from({length: max - min + 1}, (_, i) => min + i).filter(value => !numbers.includes(value));
+  for (let i = candidates.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1));
+    [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
+  }
+  numbers.push(...candidates.slice(0, size * size - numbers.length));
+  while (numbers.length < size * size) numbers.push(min + Math.floor(random() * (max - min + 1)));
   for (let i = numbers.length - 1; i > 0; i--) {
     const j = Math.floor(random() * (i + 1));
     [numbers[i], numbers[j]] = [numbers[j], numbers[i]];

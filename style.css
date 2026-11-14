@@ -11,3 +11,5 @@ main{padding-top:32px;padding-bottom:36px}.grid-icon{display:none}.choice{paddin
 .round-settings{display:grid;grid-template-columns:1fr 1fr;gap:18px}.round-settings .time-input input{width:100%;min-width:0;max-width:120px}.round-settings .time-input span{white-space:nowrap}.round-settings .time-setting p{line-height:1.7}.round-settings .time-setting{min-width:0}footer span:first-child{display:inline}
 
 .operation-help{font-size:12px;color:var(--muted);line-height:1.7;margin:10px 0 0}
+
+.range-setting .time-setting{margin-bottom:0}.range-setting .time-setting label{font-weight:400;font-size:12px}.range-setting .operation-help{margin-top:8px}.range-error{color:#9c4b21;font-size:12px;line-height:1.7;margin:0}.range-error:empty{display:none}.board[data-digits="2"] .card-number{font-size:clamp(24px,3vw,42px)}@media(max-width:680px){.board[data-digits="2"] .card-number{font-size:clamp(22px,6vw,34px)}}

@@ -71,3 +71,20 @@ test('any subset of one to four operations is balanced and excludes unselected k
   assert.throws(() => makeQuestions(makeBoard(3), []));
   assert.throws(() => makeQuestions(makeBoard(3), ['invalid']));
 });
+test('custom ranges stay bounded and support every operation, including narrow high ranges', () => {
+  for (const size of [3,4,5]) for (const [min,max] of [[1,2],[1,20],[10,20],[50,99],[98,99],[1,99]]) {
+    for (let run = 0; run < 20; run++) {
+      const board = makeBoard(size,min,max);
+      assert.equal(board.length,size*size);
+      assert.ok(board.every(card => Number.isInteger(card.value) && card.value >= min && card.value <= max));
+      const questions = makeQuestions(board,'mixed',12);
+      for (const question of questions) {
+        assert.ok(Number.isInteger(question.target) && question.target > 0);
+        assert.ok(board.some((_,a) => board.some((_,b) => checkAnswer(board,[a,b],question))));
+      }
+    }
+  }
+});
+test('invalid number ranges are rejected', () => {
+  for (const [min,max] of [[0,9],[1,100],[9,1],[5,5],[1.5,9],[1,9.5],[NaN,9]]) assert.throws(() => makeBoard(3,min,max));
+});

@@ -26,6 +26,7 @@ document.querySelectorAll('[data-operation]').forEach(button => button.addEventL
 }));
 function renderBoard() {
   $('board').style.setProperty('--size', size);
+  $('board').dataset.digits = board.some(card => card.value >= 10) ? '2' : '1';
   $('board').replaceChildren(...board.map((card, index) => {
     const button = document.createElement('button');
     const position = selected.indexOf(index);
@@ -56,9 +57,17 @@ function selectCard(index) {
   renderBoard(); renderSelection();
 }
 function startRound() {
-  if (!$('memory-time').reportValidity() || !$('round-questions').reportValidity()) return;
+  if (!['number-min', 'number-max', 'memory-time', 'round-questions'].every(id => $(id).reportValidity())) return;
+  const min = Number($('number-min').value), max = Number($('number-max').value);
+  if (min >= max) {
+    $('range-error').textContent = '最小值必須小於最大值，請調整數字範圍。';
+    $('number-max').focus();
+    return;
+  }
+  $('range-error').textContent = '';
+  $('round-info').textContent = `數字範圍 ${min}–${max} · 每題選兩張不同的卡`;
   memorySeconds = Number($('memory-time').value);
-  clearInterval(timer); board = makeBoard(size); questions = makeQuestions(board, operations, Number($('round-questions').value));
+  clearInterval(timer); board = makeBoard(size, min, max); questions = makeQuestions(board, operations, Number($('round-questions').value));
   current = 0; solved = 0; retries = 0; selected = []; phase = 'memory';
   $('setup').hidden = true; $('game').hidden = false; $('memory-panel').hidden = false; $('question-panel').hidden = true; $('summary-panel').hidden = true; $('finish').hidden = false;
   $('phase-label').textContent = '記憶階段'; $('phase-title').textContent = '記住數字與位置';
@@ -110,6 +119,7 @@ function endRound() {
 $('finish').addEventListener('click', () => $('end-dialog').showModal());
 $('cancel-end').addEventListener('click', () => $('end-dialog').close());
 $('confirm-end').addEventListener('click', () => { $('end-dialog').close(); endRound(); });
+['number-min', 'number-max'].forEach(id => $(id).addEventListener('input', () => { $('range-error').textContent = ''; }));
 $('start').addEventListener('click', startRound); $('again').addEventListener('click', startRound);
 $('settings').addEventListener('click', () => { phase = 'setup'; $('game').hidden = true; $('setup').hidden = false; });
 $('fullscreen').addEventListener('click', async () => {
