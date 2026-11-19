@@ -41,3 +41,33 @@ npm test
 ## 課堂使用
 
 初次可用 3×3、加法及 30 秒。答錯可能涉及記憶或運算，本遊戲適合作練習，並非診斷 assessment。可使用全螢幕功能投影。
+
+## Firebase 多人搶答
+
+首頁可選「單人模式」或「多人搶答」。房主建立房間後，其他玩家掃描 QR Code 或手動輸入房間代碼，並在房主開始前加入。每場固定 3×3、3 題。每題記憶 15 秒，接着有 30 秒作答。Firebase Realtime Database 只接受第一個合資格的正確答案。每題後由房主洗牌並開始下一題。全場最高分勝出，同分並列。
+
+### 本機試玩
+
+安裝 Firebase CLI 和 Java，然後在此資料夾的兩個終端機分別執行：
+
+```sh
+firebase emulators:start --project demo-memory-maths --only auth,database
+```
+
+```sh
+npm run dev
+```
+
+以兩個獨立瀏覽器工作階段開啟 http://localhost:4173/pvp.html，例如一般視窗與無痕視窗各一個。本機預設使用 Auth 和 Realtime Database 模擬器。本機 QR Code 指向目前預覽網址，請在同一部電腦輸入房間代碼測試。跨裝置掃描須先部署到可連線的網站。
+
+### 跨裝置試玩
+
+正式版使用 `memory-maths-angusma` 專用 Firebase 專案，Firebase Authentication 採匿名登入，Realtime Database 位於新加坡。GitHub Pages 上的房間 QR Code 指向公開 HTTPS 網址。應用程式不設房間人數上限，Firebase Spark 方案在整個資料庫同時最多支援 100 個連線。
+
+資料庫規則的維護指令：
+
+```sh
+firebase deploy --only database --project memory-maths-angusma
+```
+
+房間在第一題開始後停止接受新玩家，已加入的玩家可用同一瀏覽器工作階段重連。房間兩小時後停止存取，到期資料仍需由專案管理員清理。牌面及題目會同步到參與者的瀏覽器，熟悉開發者工具的玩家可以查看它們。

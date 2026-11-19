@@ -1,0 +1,67 @@
+{
+  "rules": {
+    "pvpRooms": {
+      "$code": {
+        ".read": "auth != null && now < root.child('pvpRooms').child($code).child('created').val() + 7200000 && (auth.uid === data.child('host').val() || data.child('players').child(auth.uid).exists())",
+        ".write": "auth != null && $code.matches(/^[A-F0-9]{16}$/) && !data.exists() && newData.hasChildren(['host', 'created']) && newData.child('host').val() === auth.uid && newData.child('created').val() === now && !newData.child('players').exists() && !newData.child('rounds').exists() && !newData.child('claims').exists()",
+        "host": {
+          ".validate": "newData.isString()"
+        },
+        "created": {
+          ".validate": "newData.isNumber()"
+        },
+        "rounds": {
+          "$round": {
+            ".write": "auth != null && auth.uid === root.child('pvpRooms').child($code).child('host').val() && now < root.child('pvpRooms').child($code).child('created').val() + 7200000 && root.child('pvpRooms').child($code).child('players').exists() && !data.exists() && newData.exists() && ($round === '1' || ($round === '2' && (root.child('pvpRooms').child($code).child('claims/1').exists() || (root.child('pvpRooms').child($code).child('rounds/1/started').exists() && now >= root.child('pvpRooms').child($code).child('rounds/1/started').val() + 45000))) || ($round === '3' && (root.child('pvpRooms').child($code).child('claims/2').exists() || (root.child('pvpRooms').child($code).child('rounds/2/started').exists() && now >= root.child('pvpRooms').child($code).child('rounds/2/started').val() + 45000))))",
+            ".validate": "newData.hasChildren(['started', 'operation', 'target', 'board'])",
+            "started": {
+              ".validate": "newData.isNumber() && newData.val() === now"
+            },
+            "operation": {
+              ".validate": "newData.isString() && newData.val().matches(/^(add|subtract|multiply|divide)$/)"
+            },
+            "target": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 81 && newData.val() % 1 === 0"
+            },
+            "board": {
+              ".validate": "newData.hasChildren(['A','B','C','D','E','F','G','H','I'])",
+              "$letter": {
+                ".validate": "$letter.matches(/^[A-I]$/) && newData.isNumber() && newData.val() >= 1 && newData.val() <= 9 && newData.val() % 1 === 0"
+              }
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "claims": {
+          "$round": {
+            ".write": "auth != null && now < root.child('pvpRooms').child($code).child('created').val() + 7200000 && (auth.uid === root.child('pvpRooms').child($code).child('host').val() || root.child('pvpRooms').child($code).child('players').child(auth.uid).exists()) && root.child('pvpRooms').child($code).child('rounds').child($round).exists() && !data.exists() && newData.child('uid').val() === auth.uid && now >= root.child('pvpRooms').child($code).child('rounds').child($round).child('started').val() + 15000 && now < root.child('pvpRooms').child($code).child('rounds').child($round).child('started').val() + 45000",
+            ".validate": "newData.hasChildren(['uid','a','b']) && newData.child('a').val() !== newData.child('b').val() && ((root.child('pvpRooms').child($code).child('rounds').child($round).child('operation').val() === 'add' && root.child('pvpRooms').child($code).child('rounds').child($round).child('board').child(newData.child('a').val()).val() + root.child('pvpRooms').child($code).child('rounds').child($round).child('board').child(newData.child('b').val()).val() === root.child('pvpRooms').child($code).child('rounds').child($round).child('target').val()) || (root.child('pvpRooms').child($code).child('rounds').child($round).child('operation').val() === 'subtract' && root.child('pvpRooms').child($code).child('rounds').child($round).child('board').child(newData.child('a').val()).val() - root.child('pvpRooms').child($code).child('rounds').child($round).child('board').child(newData.child('b').val()).val() === root.child('pvpRooms').child($code).child('rounds').child($round).child('target').val()) || (root.child('pvpRooms').child($code).child('rounds').child($round).child('operation').val() === 'multiply' && root.child('pvpRooms').child($code).child('rounds').child($round).child('board').child(newData.child('a').val()).val() * root.child('pvpRooms').child($code).child('rounds').child($round).child('board').child(newData.child('b').val()).val() === root.child('pvpRooms').child($code).child('rounds').child($round).child('target').val()) || (root.child('pvpRooms').child($code).child('rounds').child($round).child('operation').val() === 'divide' && root.child('pvpRooms').child($code).child('rounds').child($round).child('board').child(newData.child('b').val()).val() > 0 && root.child('pvpRooms').child($code).child('rounds').child($round).child('board').child(newData.child('a').val()).val() === root.child('pvpRooms').child($code).child('rounds').child($round).child('target').val() * root.child('pvpRooms').child($code).child('rounds').child($round).child('board').child(newData.child('b').val()).val()))",
+            "uid": {
+              ".validate": "newData.isString()"
+            },
+            "a": {
+              ".validate": "newData.isString() && newData.val().matches(/^[A-I]$/)"
+            },
+            "b": {
+              ".validate": "newData.isString() && newData.val().matches(/^[A-I]$/)"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "$other": {
+          ".validate": false
+        },
+        "players": {
+          "$uid": {
+            ".write": "auth != null && auth.uid === $uid && root.child('pvpRooms').child($code).child('host').exists() && auth.uid !== root.child('pvpRooms').child($code).child('host').val() && now < root.child('pvpRooms').child($code).child('created').val() + 7200000 && !root.child('pvpRooms').child($code).child('rounds').exists() && !data.exists() && newData.val() === now",
+            ".validate": "newData.isNumber()"
+          }
+        }
+      }
+    }
+  }
+}

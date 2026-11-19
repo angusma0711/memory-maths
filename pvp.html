@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>多人搶答｜數字記憶挑戰</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="pvp.css">
+  <script defer src="vendor/qrcode.js"></script>
+  <script type="module" src="pvp.js"></script>
+</head>
+<body>
+  <header class="topbar"><a class="brand" href="./">數字記憶挑戰</a><a href="./">選擇模式</a></header>
+  <main>
+    <section class="setup-card pvp-card">
+      <h1>多人搶答</h1>
+      <p>每場 3 題。每題洗牌後記憶 15 秒，再用 30 秒搶答。先答對得 1 分。</p>
+      <div id="lobby">
+        <button id="create" class="primary" disabled>建立房間</button>
+        <form id="join-form">
+          <label for="code">房間代碼</label>
+          <div class="pvp-actions">
+            <input id="code" name="code" pattern="[A-Fa-f0-9]{16}" maxlength="16" required autocomplete="off" spellcheck="false">
+            <button id="join" class="secondary" disabled>加入</button>
+          </div>
+        </form>
+      </div>
+      <div id="match" hidden>
+        <p>房間代碼 <strong id="room-code"></strong></p>
+        <figure id="qr-invite" hidden>
+          <div id="room-qr" role="img" aria-label="多人房間邀請 QR Code"></div>
+          <figcaption id="qr-caption">掃描 QR Code，再按「加入」。</figcaption>
+        </figure>
+        <a href="pvp.html">離開房間</a>
+        <p id="player-count" role="status"></p>
+        <p id="score"></p>
+        <ul id="leaderboard" aria-label="得分榜"></ul>
+        <h2 id="phase" aria-live="polite"></h2>
+        <p id="timer"></p>
+        <p id="prompt" class="equation" hidden></p>
+        <div id="cards" class="board pvp-board" hidden></div>
+        <p id="selection"></p>
+        <div class="pvp-actions">
+          <button id="submit" class="primary" hidden>送出答案</button>
+          <button id="advance" class="primary" hidden>開始對戰</button>
+        </div>
+      </div>
+      <p id="status" role="status">正在連線…</p>
+    </section>
+  </main>
+</body>
+</html>
